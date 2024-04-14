@@ -1,10 +1,3 @@
-const SIDEBAR_ITEMS = [
-    { label: '启动', action: 'start' },
-    { label: '下载', action: 'download' },
-    { label: '登录', action: 'login' },
-    { label: '设置', action: 'settings' }
-];
-
 const SIDEBAR_ITEM_CLASSES = 'p-4 hover:bg-green-300';
 const SIDEBAR_WIDTH = 'w-1/4';
 const MAIN_CONTENT_WIDTH = 'w-3/4';
@@ -15,24 +8,41 @@ const FULL_HEIGHT = 'h-screen';
 const FLEX_CONTAINER = 'flex';
 
 class CustomSidebar extends HTMLElement {
-    connectedCallback() {
-        this.render();
-    }
-
-    render() {
-        this.innerHTML = `
-            <div class="${FLEX_CONTAINER}">
-                <div class="${SIDEBAR_BG_COLOR} ${TEXT_COLOR} ${SIDEBAR_WIDTH} ${FULL_HEIGHT}">
-                    <ul>
-                        ${SIDEBAR_ITEMS.map(item => `<li class="${SIDEBAR_ITEM_CLASSES}" data-action="${item.action}">${item.label}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="${MAIN_CONTENT_BG_COLOR} ${TEXT_COLOR} ${MAIN_CONTENT_WIDTH} ${FULL_HEIGHT}">
-                    
-                </div>
-            </div>
-        `;
-    }
+    
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const customSidebar = document.querySelector('custom-sidebar');
+
+    if (customSidebar) {
+        customSidebar.addEventListener('click', (event) => {
+            const clickedItem = event.target;
+            const action = clickedItem.dataset.action;
+            clickedItem.classList.add('selected');
+            document.querySelectorAll('.sidebar li').forEach((item) => {
+                if (item !== clickedItem) {
+                    item.classList.remove('selected');
+                }
+            })
+            switch (action) {
+                case 'start':
+                    break;
+                case 'download':
+                    break;
+                case 'login':
+                    break;
+                case 'settings':
+                    break;
+                case 'exit':
+                    window.location.href = 'exit.html';
+                    break;
+                default:
+                    break;
+            }
+        });
+    } else {
+        console.error('error');
+    }
+});
 
 customElements.define('custom-sidebar', CustomSidebar);

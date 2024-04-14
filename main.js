@@ -8,7 +8,8 @@ function createWindow () {
     height: 480,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
-    }
+    },
+    frame:false
   });
 
   mainWindow.loadFile('index.html');
@@ -16,3 +17,10 @@ function createWindow () {
 }
 
 app.on('ready', createWindow);
+
+app.on('web-contents-created', (e, contents) => {
+  contents.on('will-navigate', (event, navigationUrl) => {
+    if (navigationUrl.endsWith('exit.html')) {
+      app.quit();
+  }
+})});

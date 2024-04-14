@@ -25,11 +25,11 @@ body, html {
   }
   
   .sidebar li:hover {
-    background-color: #0d630d;
+    background-color: #295829;
   }
 
   .selected {
-    background-color: #295829;
+    background-color: #0d630d;
     }
 
   .main-content {
