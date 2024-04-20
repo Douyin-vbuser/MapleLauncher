@@ -1,0 +1,46 @@
+/*
+    CSS for dialog 
+*/
+
+.dialog {
+    background-color: #3b3434;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    color: #e5f4f5;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.button {
+    color: #e5f4f5;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border:none;
+}
+
+.confirm {
+    background-color: #0d630d;
+}
+
+.cancel {
+    background-color: #ca1e0b;
+}
+
+.text-lg {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.flex {
+    display: flex;
+}
+
+.justify-end {
+    justify-content: flex-end;
+}
+
+.space-x-2 > * + * {
+    margin-left: 0.5rem;
+}

@@ -34,7 +34,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'settings':
                     break;
                 case 'exit':
-                    window.location.href = 'exit.html';
+                    if (!document.querySelector('.custom-dialog')) {
+                        const overlay = document.createElement('div');
+                        overlay.id= "overlayQuit";
+                        overlay.classList.add('custom-dialog');
+                        overlay.style.position = 'fixed';
+                        overlay.style.top = '0';
+                        overlay.style.left = '0';
+                        overlay.style.width = '100%';
+                        overlay.style.height = '100%';
+                        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                        overlay.style.display = 'flex';
+                        overlay.style.justifyContent = 'center';
+                        overlay.style.alignItems = 'center';
+                
+                        const customDialog = document.createElement('custom-dialog');
+                        overlay.appendChild(customDialog);
+                
+                        document.body.appendChild(overlay);
+                    }
                     break;
                 default:
                     break;
