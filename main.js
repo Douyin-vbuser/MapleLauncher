@@ -26,49 +26,58 @@ app.on('web-contents-created', (e, contents) => {
 });
 
 app.on('ready', () => {
-  
+  launcher_folder();
 })
 
-function download_environment() {
-  if(isChina()){
-    console.log("Source:120.55.115.223");
-    download_environment2();
-  }else{
-    console.log("Source:Github");
-    download_environment1();
+app.on('ready', () => {
+  const { ipcMain } = require('electron');
+  ipcMain.handle('download_environment', () => {
+    download_environment();
+  });
+})
+
+function launcher_folder(){
+  const mapleFolderExists = fs.existsSync(path.join(__dirname, 'Maple'));
+  if (!mapleFolderExists) {
+    fs.mkdirSync(path.join(__dirname, 'Maple'));
+    fs.writeFileSync(path.join(__dirname, 'Maple', 'setting.json'), '{}');
+    writeSetting('version', 'beta_0.0.1');
+    writeSetting('source_server','https://proxy-gh.1l1.icu/https://github.com/Douyin-vbuser/Minecraft-Genshin-Mod/releases/download');
   }
 }
 
-function download_environment1() {
-  request('https://proxy-gh.1l1.icu/https://github.com/Douyin-vbuser/Minecraft-Genshin-Mod/releases/download/enviroment/default.minecraft.exe')
-    .pipe(fs.createWriteStream('.minecraft.7z'))
+function writeSetting(key, value) {
+  const filePath = path.join(__dirname, 'Maple', 'setting.json');
+
+  let data = {};
+  try {
+      data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (err) {
+      console.error('Error reading setting.json:', err);
+  }
+
+  data[key] = value;
+
+  try {
+      fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+      console.log('Setting updated successfully.');
+  } catch (err) {
+      console.error('Error writing setting.json:', err);
+  }
+}
+
+function readSetting(key) {
+  const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'Maple', 'setting.json')));
+  return data[key];
+}
+
+function download_environment() {
+  request(readSetting('source_server')+'/enviroment/default.minecraft.exe')
+    .pipe(fs.createWriteStream('.minecraft.exe'))
     .on('finish', function () {
       console.log('Download completed.');
       extract_environment();
     });
-}
-
-function download_environment2() {
-  request("http://120.55.115.223:11451/.minecraft.exe")
-    .pipe(fs.createWriteStream('.minecraft.7z'))
-    .on('finish', function () {
-      console.log('Download completed.');
-      extract_environment();
-    })
-}
-
-async function isChina() {
-  try {
-    const response = await axios.get('http://ip-api.com/json')
-    const country = response.data.country
-    if (country === 'China') {
-      return true;
-    } else {
-      return false;
-    }
-  } catch (error) {
-    console.error('Error fetching data:', error)
-  }
 }
 
 function extract_environment() {
