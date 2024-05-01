@@ -9,9 +9,12 @@ const { memoryUsage } = require('node:process');
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 480,
-    frame: false
+    width: 1068,
+    height: 519,
+    frame: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    }
   });
 
   mainWindow.loadFile('index.html');
@@ -30,27 +33,32 @@ app.on('web-contents-created', (e, contents) => {
 
 app.on('ready', () => {
   launcher_folder();
-  test();
-})
+});
 
-function test(){
-  const minecraft_path = path.join(__dirname,".minecraft");
-  const version_name="1.12.2-Forge_14.23.5.2854-OptiFine_G5";
-  const uuid='fb48efcbb7014a6f883d5f5bdacda3dd';
-  const user_name='MCI_vbuser';
-  const accessToken='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
-  const width='854';
-  const height='480';
-  launchMinecraft(version_name,uuid,user_name,width,height,accessToken,minecraft_path);
-}
-
+//Expose method through ipc to renderer thread.
 app.on('ready', () => {
   const { ipcMain } = require('electron');
   ipcMain.handle('download_environment', () => {
     download_environment();
   });
+  ipcMain.handle('launchMinecraft', (event, version_name,uuid,user_name,width,height,accessToken,minecraft_path) => {
+    launchMinecraft(version_name,uuid,user_name,width,height,accessToken,minecraft_path);
+  });
+  ipcMain.handle('writeSetting',(event,key,value)=>{
+    writeSetting(key,value);
+  });
+  ipcMain.handle('readSetting',(event,key)=>{
+    return readSetting(key);
+  });
+  ipcMain.handle('checkSetting',(event,key)=>{
+    return checkSetting(key);
+  });
+  ipcMain.handle('checkMinecraft',(event,item)=>{
+    return checkMinecraft(item);
+  })
 })
 
+//Check setting in config profile.
 function launcher_folder(){
   const mapleFolderExists = fs.existsSync(path.join(__dirname, 'Maple'));
   if (!mapleFolderExists) {
@@ -71,8 +79,15 @@ function launcher_folder(){
       console.error(error);
     });
   }
+  if(!checkSetting('minecraft_path')){
+    writeSetting("minecraft_path",path.join(__dirname,'.minecraft'));
+  }
+  if(!checkSetting('version_name')){
+    writeSetting("version_name",'1.12.2-Forge_14.23.5.2854-OptiFine_G5');
+  }
 }
 
+//Read and Write information to setting.json.
 function writeSetting(key, value) {
   const filePath = path.join(__dirname, 'Maple', 'setting.json');
 
@@ -103,6 +118,7 @@ function checkSetting(key) {
   return value !== undefined && value !== null && value !== '';
 }
 
+//Download .minecraft.
 function download_environment() {
   request(readSetting('source_server')+'/enviroment/default.minecraft.exe')
     .pipe(fs.createWriteStream('.minecraft.exe'))
@@ -112,6 +128,7 @@ function download_environment() {
     });
 }
 
+//Extract .minecraft.7z.
 function extract_environment() {
   const { spawn } = require('child_process');
 
@@ -138,6 +155,7 @@ function extract_environment() {
 
 }
 
+//Get java path.
 function getJavaPath() {
   return new Promise((resolve, reject) => {
     let cmd;
@@ -176,7 +194,13 @@ function getJavaPath() {
   });
 }
 
+//Launch Minecraft.
 function launchMinecraft(version_name,uuid,user_name,width,height,accessToken,minecraft_path) {
+  const win = BrowserWindow.getAllWindows();
+  win.forEach(function (window) {
+    window.minimize();
+  })
+
   const freeMemory = os.freemem();
   const freeMemoryMB = Math.floor(freeMemory / 1024 / 1024);
   const java_path = readSetting('java');
@@ -201,9 +225,31 @@ function launchMinecraft(version_name,uuid,user_name,width,height,accessToken,mi
   exec(process.platform === 'win32' ? `attrib +h "${folderPath}"` : `chflags hidden "${folderPath}"`);
 
   exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error : ${error}`);
-      return;
-    }
+    win.forEach(function (window) {
+      window.restore();
+    })
   })
+}
+
+//Check if config is set.
+function checkMinecraft(item){
+  var a = false;
+  if(item=="minecraft"){
+    const minecraft_path = readSetting('minecraft_path');
+    const version_name = readSetting('version_name');
+    a = (fs.existsSync(minecraft_path+'\\versions\\'+version_name+'\\'+version_name+'.jar'));
+  }
+  if(item=="mod"){
+    a=true;
+  }
+  if(item=="map"){
+    a=true;
+  }
+  if(item=="resource"){
+    a=false;
+  }
+  if(item=="all"){
+    a=checkMinecraft("minecraft")&&checkMinecraft("mod")&&checkMinecraft("map")&&checkMinecraft("resource");
+  }
+  return a;
 }
