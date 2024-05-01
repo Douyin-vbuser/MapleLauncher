@@ -3,17 +3,17 @@
 */
 
 .dialog {
-    background-color: #17141f;
+    background-color: #2e2928;
     padding: 1rem;
     border-radius: 0.5rem;
-    color: #fefffb;
+    color: #ddfaf9;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
 }
 
 .button {
-    color: #fefffb;
+    color: #ddfaf9;
     font-weight: bold;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
@@ -21,11 +21,11 @@
 }
 
 .confirm {
-    background-color: #d31c16;
+    background-color: #cb2b1c;
 }
 
 .cancel {
-    background-color: #ca8f10;
+    background-color: #df7e39;
 }
 
 .text-lg {

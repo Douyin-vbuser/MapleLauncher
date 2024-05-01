@@ -6,8 +6,8 @@ body, html {
   }
   
   .sidebar {
-    background-color: #060108;
-    color: #fefffb;
+    background-color: #1c1211;
+    color: #ddfaf9;
     width: 200px;
     height: 100%;
     float: left;
@@ -25,15 +25,15 @@ body, html {
   }
   
   .sidebar li:hover {
-    background-color: #ca8f10;
+    background-color: #df7e39;
   }
 
   .sidebar li.selected  {
-    background-color: #d31c16;
+    background-color: #cb2b1c;
     }
 
   .main-content {
-    background-color: #03000e;
+    background-color: #0a0000;
     margin-left: 200px;
     padding: 20px;
     height: 100%;
