@@ -1,6 +1,4 @@
-node_modules
-Maple
-.idea
-logs
-.minecraft
-dist
+x64/
+Maple Client/x64/Debug/
+.idea/
+.vs/
