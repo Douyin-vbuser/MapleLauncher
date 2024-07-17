@@ -75,8 +75,6 @@ bool ExtractJar(const std::string& jarPath, const std::string& extractPath) {
     return true;
 }
 
-using json = nlohmann::json;
-
 void CreateDummyLauncherProfiles(const std::string& filePath) {
     json dummyProfiles = {
         {"profiles", {
@@ -112,7 +110,10 @@ void InstallForge(const std::string& minecraftDir, const std::string& version) {
         std::cerr << "Failed to download Forge installer." << std::endl;
         return;
     }
-    std::string command = "java -jar \"" + forgeJarPath + "\" --installClient \"" + fs::absolute(minecraftDir).string() + "\"";
+    std::string absPath = fs::absolute(minecraftDir).string();
+    std::string modifiedPath = absPath.substr(0, absPath.size() - 1);
+    modifiedPath = "\"" + modifiedPath + "\"";
+    std::string command = "java -jar " + forgeJarPath + " --installClient " + modifiedPath;
     std::cerr << "Running command:" + command << std::endl;
     std::thread installer_thread([command]() {
         int result = std::system(command.c_str());
@@ -346,9 +347,4 @@ void DownloadMinecraft() {
     std::cout << "Minecraft " << version << " and its resources have been downloaded successfully!" << std::endl;
     VerifyAndDownloadResources(minecraftDir,version);
     InstallForge(minecraftDir, version);
-}
-
-int main() {
-    DownloadMinecraft();
-    return 0;
 }
