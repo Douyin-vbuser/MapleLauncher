@@ -2,8 +2,16 @@
 #include <string>
 #include <cstdlib>
 #include <filesystem>
+#include <nlohmann/json.hpp>
+#include <fstream>
 
-std::string getExeDir() {
+namespace fs = std::filesystem;
+using json = nlohmann::json;
+
+const fs::path SETTINGS_PATH1 = fs::current_path() / "Maple" / "setting.json";
+//#include "JsonUtil.cpp"
+
+static std::string getExeDir() {
     std::string exePath = std::filesystem::current_path().string();
     std::filesystem::directory_iterator it(exePath);
     for (const auto& entry : it) {
@@ -14,7 +22,7 @@ std::string getExeDir() {
     return "";
 }
 
-void deleteLogsFolder() {
+static void deleteLogsFolder() {
     std::filesystem::path logsPath = std::filesystem::current_path() / "logs";
     if (std::filesystem::exists(logsPath) && std::filesystem::is_directory(logsPath)) {
         std::filesystem::remove_all(logsPath);
@@ -25,7 +33,7 @@ void deleteLogsFolder() {
     }
 }
 
-void launchMinecraft(const std::string& javaPath, const std::string& playerName, const std::string& accessToken, const std::string& uuid) {
+static void launchMinecraft(const std::string& javaPath, const std::string& playerName, const std::string& accessToken, const std::string& uuid) {
     std::string command = javaPath;
 
     command += " -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow "
@@ -94,11 +102,32 @@ void launchMinecraft(const std::string& javaPath, const std::string& playerName,
     system(command.c_str());
 }
 
-void test() {
+static std::string read1(const std::string& key) {
+    if (!fs::exists(SETTINGS_PATH1)) {
+        throw std::runtime_error("settings.json does not exist in Maple folder");
+    }
+
+    std::ifstream file(SETTINGS_PATH1);
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open settings.json");
+    }
+
+    json j;
+    file >> j;
+
+    if (j.find(key) != j.end() && j[key].is_string()) {
+        return j[key].get<std::string>();
+    }
+    else {
+        throw std::runtime_error("Key not found or value is not a string: " + key);
+    }
+}
+
+static void runMinecraft() {
     std::string javaPath = "C:\\ProgramData\\BadlionClient\\jre1.8.0_51\\bin\\java.exe";
-    std::string playerName = "MCI_vbuser";
-    std::string accessToken = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-    std::string uuid = "fb48efcbb7014a6f883d5f5bdacda3dd";
+    std::string playerName = read1("name");
+    std::string accessToken = read1("token");
+    std::string uuid = read1("uuid");
 
     launchMinecraft(javaPath, playerName, accessToken, uuid);
     deleteLogsFolder();

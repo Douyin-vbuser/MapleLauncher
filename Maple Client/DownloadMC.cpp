@@ -14,7 +14,7 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
     return size * nmemb;
 }
 
-bool DownloadFile(const std::string& url, const std::string& filepath) {
+static bool DownloadFile(const std::string& url, const std::string& filepath) {
     fs::create_directories(fs::path(filepath).parent_path());
 
     CURL* curl;
@@ -39,7 +39,7 @@ bool DownloadFile(const std::string& url, const std::string& filepath) {
     return false;
 }
 
-bool ExtractJar(const std::string& jarPath, const std::string& extractPath) {
+static bool ExtractJar(const std::string& jarPath, const std::string& extractPath) {
     int err = 0;
     zip* z = zip_open(jarPath.c_str(), 0, &err);
     if (!z) {
@@ -75,7 +75,7 @@ bool ExtractJar(const std::string& jarPath, const std::string& extractPath) {
     return true;
 }
 
-void CreateDummyLauncherProfiles(const std::string& filePath) {
+static void CreateDummyLauncherProfiles(const std::string& filePath) {
     json dummyProfiles = {
         {"profiles", {
             {"Maple", {
@@ -99,7 +99,7 @@ void CreateDummyLauncherProfiles(const std::string& filePath) {
     }
 }
 
-void InstallForge(const std::string& minecraftDir, const std::string& version) {
+static void InstallForge(const std::string& minecraftDir, const std::string& version) {
     std::string dummyProfilesPath = ".minecraft/launcher_profiles.json";
     CreateDummyLauncherProfiles(dummyProfilesPath);
     const std::string forgeVersion = "1.12.2-14.23.5.2854";
@@ -128,7 +128,7 @@ void InstallForge(const std::string& minecraftDir, const std::string& version) {
     fs::remove(forgeJarPath);
 }
 
-void VerifyAndDownloadResources(const std::string& minecraftDir, const std::string& version) {
+static void VerifyAndDownloadResources(const std::string& minecraftDir, const std::string& version) {
     std::string versionJsonPath = minecraftDir + "versions/" + version + "/" + version + ".json";
     std::ifstream versionFile(versionJsonPath);
     if (!versionFile.is_open()) {
@@ -193,7 +193,7 @@ void VerifyAndDownloadResources(const std::string& minecraftDir, const std::stri
     std::cout << "Resource verification and download completed." << std::endl;
 }
 
-void DownloadMinecraft() {
+static void DownloadMinecraft() {
     const std::string version = "1.12.2";
     const std::string versionManifestUrl = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
     const std::string minecraftDir = ".minecraft/";
