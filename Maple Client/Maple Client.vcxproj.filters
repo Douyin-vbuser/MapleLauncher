@@ -18,13 +18,13 @@
     <ClCompile Include="DownloadMC.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="JsonUtil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="LaunchMC.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="PageMain.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonUtil.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

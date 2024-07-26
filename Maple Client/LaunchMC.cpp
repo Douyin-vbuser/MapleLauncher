@@ -33,6 +33,29 @@ static void deleteLogsFolder() {
     }
 }
 
+static void FixNativesForge() {
+    std::string vanillaNativesPath = ".minecraft/versions/1.12.2/1.12.2-natives/";
+    std::string forgeNativesPath = ".minecraft/versions/1.12.2-forge-14.23.5.2854/1.12.2-forge-14.23.5.2854-natives/";
+
+    if (!fs::exists(forgeNativesPath)) {
+        try {
+            if (fs::exists(vanillaNativesPath)) {
+                fs::create_directories(forgeNativesPath);
+                fs::copy(vanillaNativesPath, forgeNativesPath, fs::copy_options::recursive);
+                std::cout << "Copied natives folder successfully." << std::endl;
+            }
+            else {
+                std::cerr << "Vanilla natives folder not found." << std::endl;
+                return;
+            }
+        }
+        catch (const fs::filesystem_error& e) {
+            std::cerr << "Error copying natives folder: " << e.what() << std::endl;
+            return;
+        }
+    }
+}
+
 static void launchMinecraft(const std::string& javaPath, const std::string& playerName, const std::string& accessToken, const std::string& uuid) {
     std::string command = javaPath;
 
@@ -128,6 +151,8 @@ static void runMinecraft() {
     std::string playerName = read1("name");
     std::string accessToken = read1("token");
     std::string uuid = read1("uuid");
+
+    FixNativesForge();
 
     launchMinecraft(javaPath, playerName, accessToken, uuid);
     deleteLogsFolder();

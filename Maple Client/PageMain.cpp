@@ -4,6 +4,26 @@
 #include "JsonUtil.cpp"
 #include "DownloadMC.cpp"
 #include "LaunchMC.cpp"
+#include <wx/thread.h>
+
+const int DOWNLOAD_COMPLETE_EVENT = wxNewEventType();
+
+class DownloadThread : public wxThread
+{
+public:
+    DownloadThread(wxEvtHandler* handler) : wxThread(wxTHREAD_DETACHED), m_handler(handler) {}
+
+protected:
+    virtual ExitCode Entry() override
+    {
+        DownloadMinecraft();
+        wxQueueEvent(m_handler, new wxThreadEvent(wxEVT_THREAD, DOWNLOAD_COMPLETE_EVENT));
+        return (ExitCode)0;
+    }
+
+private:
+    wxEvtHandler* m_handler;
+};
 
 class CustomButton : public wxButton
 {
@@ -39,27 +59,6 @@ private:
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight());
     }
-};
-
-const int DOWNLOAD_COMPLETE_EVENT = wxNewEventType();
-
-class DownloadThread : public wxThread
-{
-public:
-    DownloadThread(wxButton* button) : wxThread(wxTHREAD_DETACHED), m_button(button) {}
-
-protected:
-    virtual ExitCode Entry()
-    {
-        DownloadMinecraft();
-        wxThreadEvent* event = new wxThreadEvent(wxEVT_THREAD, DOWNLOAD_COMPLETE_EVENT);
-        wxQueueEvent(m_button->GetEventHandler(), event);
-
-        return (ExitCode)0;
-    }
-
-private:
-    wxButton* m_button;
 };
 
 class MainFrame : public wxFrame
@@ -129,6 +128,9 @@ public:
     }
 
 private:
+
+    CustomButton* button;
+
     void OnAvatarClicked(wxMouseEvent& event)
     {
         
@@ -141,30 +143,28 @@ private:
             runMinecraft();
         }
         else {
-            CustomButton* button = wxDynamicCast(event.GetEventObject(), CustomButton);
+            button = wxDynamicCast(event.GetEventObject(), CustomButton);
             button->Enable(false);
             button->SetLabel("获取中...");
 
-            DownloadThread* thread = new DownloadThread(button);
+            DownloadThread* thread = new DownloadThread(this);
             if (thread->Run() != wxTHREAD_NO_ERROR)
             {
                 delete thread;
-                button->SetLabel("错误");
-                button->Enable(true);
+                wxLogError("Failed to create the worker thread!");
             }
         }
     }
 
     void OnDownloadComplete(wxThreadEvent& event)
     {
-        CustomButton* button = wxDynamicCast(FindWindow(wxID_ANY), CustomButton);
         if (button)
         {
             button->SetLabel("启动游戏");
             button->Enable(true);
         }
         ensureMapleSettingsExist();
-        runMinecraft();
+        FixNativesForge();
     }
 
     void OnEixt(wxCommandEvent& event){exit(0);}
@@ -180,8 +180,6 @@ public:
         return true;
     }
 };
-
-//wxIMPLEMENT_APP(MyApp);
 
 int main(int argc, char* argv[])
 {
